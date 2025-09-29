@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Responsive Image Gallery</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#06b6d4; --muted:#94a3b8; --gap:12px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,#071024 0%, #071020 100%);color:#e6eef6;min-height:100vh;padding:28px}
+    header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:1.25rem;margin:0}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+
+    .filters{display:flex;gap:8px}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:var(--muted);cursor:pointer;transition:all .22s;backdrop-filter:blur(6px)}
+    .btn:hover{transform:translateY(-3px);color:var(--accent);border-color:rgba(6,182,212,0.15)}
+    .btn.active{background:linear-gradient(90deg, rgba(6,182,212,0.08), rgba(6,182,212,0.03));color:var(--accent);border-color:rgba(6,182,212,0.25)}
+    .filters select{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+
+    .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+    .card{position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));cursor:pointer;transition:transform .35s, box-shadow .35s}
+    .card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s, filter .35s}
+    .card:hover{transform:translateY(-8px);box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+    .card .meta{position:absolute;left:10px;bottom:10px;padding:6px 8px;border-radius:8px;background:linear-gradient(180deg, rgba(2,6,23,0.55), rgba(2,6,23,0.35));font-size:0.85rem}
+
+    .card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.20));opacity:0;transition:opacity .25s}
+    .card:hover::after{opacity:1}
+    .lightbox{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.7);z-index:60;padding:20px}
+    .lightbox.open{display:flex}
+    .lb-content{max-width:1100px;width:100%;max-height:90vh;display:flex;align-items:center;gap:16px}
+    .lb-image{flex:1;display:flex;align-items:center;justify-content:center;max-height:90vh}
+    .lb-image img{max-width:100%;max-height:80vh;border-radius:8px}
+    .lb-info{width:300px;min-width:220px;color:var(--muted)}
+    .lb-info h3{margin:0 0 8px 0;color:#fff}
+    .lb-controls{display:flex;gap:8px;margin-top:12px}
+    .icon-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px;cursor:pointer;color:var(--muted)}
+    .icon-btn:hover{color:var(--accent);transform:translateY(-2px)}
+
+    .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.08));border:none;padding:10px;border-radius:999px;cursor:pointer;color:#fff}
+    .nav-btn.left{left:20px}
+    .nav-btn.right{right:20px}
+
+    @media (max-width:900px){
+      .lb-info{display:none}
+      header{gap:8px}
+    }
+    @media (max-width:560px){
+      body{padding:16px}
+    }
+    .caption{font-size:0.9rem;color:var(--muted)}
+
+    .effects{display:flex;gap:8px;flex-wrap:wrap}
+    .effects .chip{padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);cursor:pointer;font-size:0.85rem}
+    .effects .chip.active{background:rgba(255,255,255,0.02);color:var(--accent)}
+
+    .empty{padding:40px;border-radius:12px;text-align:center;color:var(--muted);background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Responsive Image Gallery</h1>
+    <div class="controls">
+      <div class="filters" role="tablist" aria-label="Gallery filters">
+        <button class="btn active" data-filter="all">All</button>
+        <button class="btn" data-filter="nature">Nature</button>
+        <button class="btn" data-filter="people">People</button>
+        <button class="btn" data-filter="architecture">Architecture</button>
+      </div>
+      <div style="width:8px"></div>
+      <div class="effects" aria-label="Image effects">
+        <button class="chip active" data-effect="none">Normal</button>
+        <button class="chip" data-effect="grayscale(100%)">Grayscale</button>
+        <button class="chip" data-effect="sepia(60%)">Sepia</button>
+        <button class="chip" data-effect="contrast(110%) saturate(120%)">Vivid</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="gallery" id="gallery">
+      
+
+      <article class="card" tabindex="0" data-category="nature" data-title="Foggy Pine Hills" data-src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=60" alt="Foggy pine hills">
+        <div class="meta">Nature • Fog</div>
+      </article>
+
+      <article class="card" tabindex="0" data-category="architecture" data-title="Modern Building" data-src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1400&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=800&q=60" alt="Modern building exterior">
+        <div class="meta">Architecture</div>
+      </article>
+
+      <article class="card" tabindex="0" data-category="people" data-title="Smiling Street Musician" data-src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=1400&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&q=60" alt="Smiling street musician">
+        <div class="meta">People</div>
+      </article>
+
+      <article class="card" tabindex="0" data-category="nature" data-title="Mountain Lake" data-src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=60" alt="Mountain lake">
+        <div class="meta">Nature • Lake</div>
+      </article>
+
+      <article class="card" tabindex="0" data-category="architecture" data-title="Bridged City" data-src="https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=1400&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=800&q=60" alt="City bridge at dusk">
+        <div class="meta">Architecture • Bridge</div>
+      </article>
+
+      <article class="card" tabindex="0" data-category="people" data-title="Portrait in Yellow" data-src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1400&q=80">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=60" alt="Portrait">
+        <div class="meta">People • Portrait</div>
+      </article>
+
+    
+
+    </section>
+
+    <div id="empty" class="empty" style="display:none">No images match that filter.</div>
+  </main>
+
+ 
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <button class="nav-btn left" id="prevBtn" aria-label="Previous image">◀</button>
+    <div class="lb-content" role="document">
+      <div class="lb-image">
+        <img id="lbImg" src="" alt="">
+      </div>
+      <aside class="lb-info">
+        <h3 id="lbTitle">Title</h3>
+        <p class="caption" id="lbCaption">Image caption and details go here.</p>
+        <div class="lb-controls">
+          <button class="icon-btn" id="downloadBtn">Download</button>
+          <button class="icon-btn" id="closeBtn">Close</button>
+        </div>
+      </aside>
+    </div>
+    <button class="nav-btn right" id="nextBtn" aria-label="Next image">▶</button>
+  </div>
+
+  <script>
+    (function(){
+      const gallery = document.getElementById('gallery');
+      const cards = Array.from(gallery.querySelectorAll('.card'));
+      const filters = Array.from(document.querySelectorAll('.filters .btn'));
+      const chips = Array.from(document.querySelectorAll('.effects .chip'));
+      const lightbox = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lbImg');
+      const lbTitle = document.getElementById('lbTitle');
+      const lbCaption = document.getElementById('lbCaption');
+      const closeBtn = document.getElementById('closeBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const prevBtn = document.getElementById('prevBtn');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const empty = document.getElementById('empty');
+
+      let currentEffect = 'none';
+      let activeFilter = 'all';
+      let visibleCards = cards.slice();
+      let currentIndex = 0;
+
+      function applyFilter(filter){
+        activeFilter = filter;
+        filters.forEach(b=>b.classList.toggle('active', b.dataset.filter===filter));
+        visibleCards = cards.filter(c => filter==='all' ? true : c.dataset.category===filter);
+        gallery.innerHTML = '';
+        if(visibleCards.length===0){ empty.style.display='block'; } else { empty.style.display='none'; }
+        visibleCards.forEach(c=> gallery.appendChild(c));
+       
+        applyEffect(currentEffect);
+      }
+
+   
+      function applyEffect(effect){
+        currentEffect = effect;
+        chips.forEach(ch=>ch.classList.toggle('active', ch.dataset.effect===effect));
+        visibleCards.forEach(c=>{
+          const img = c.querySelector('img');
+          img.style.filter = effect;
+        });
+      }
+
+      
+      function openLightbox(idx){
+        if(visibleCards.length===0) return;
+        currentIndex = ((idx%visibleCards.length)+visibleCards.length)%visibleCards.length;
+        const card = visibleCards[currentIndex];
+        const src = card.dataset.src || card.querySelector('img').src;
+        lbImg.src = src;
+        lbTitle.textContent = card.dataset.title || card.querySelector('img').alt || 'Photo';
+        lbCaption.textContent = card.querySelector('.meta')?.textContent || '';
+        lbImg.style.filter = currentEffect;
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden','false');
+      }
+
+      function closeLightbox(){
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden','true');
+      }
+
+      function showNext(){ openLightbox(currentIndex+1); }
+      function showPrev(){ openLightbox(currentIndex-1); }
+
+      filters.forEach(b=> b.addEventListener('click', ()=> applyFilter(b.dataset.filter)));
+      chips.forEach(ch=> ch.addEventListener('click', ()=> applyEffect(ch.dataset.effect)));
+
+      gallery.addEventListener('click', e=>{
+        const card = e.target.closest('.card');
+        if(!card) return;
+        const idx = visibleCards.indexOf(card);
+        openLightbox(idx===-1?0:idx);
+      });
+
+      gallery.addEventListener('keydown', e=>{
+        if(e.key==='Enter'||e.key===' '){
+          e.preventDefault();
+          const card = e.target.closest('.card');
+          if(!card) return;
+          const idx = visibleCards.indexOf(card);
+          openLightbox(idx===-1?0:idx);
+        }
+      });
+
+      closeBtn.addEventListener('click', closeLightbox);
+      downloadBtn.addEventListener('click', ()=>{
+        const a = document.createElement('a');
+        a.href = lbImg.src; a.download = (lbTitle.textContent||'image') +'.jpg';
+        document.body.appendChild(a); a.click(); a.remove();
+      });
+      nextBtn.addEventListener('click', showNext);
+      prevBtn.addEventListener('click', showPrev);
+
+      lightbox.addEventListener('click', e=>{
+        if(e.target===lightbox) closeLightbox();
+      });
+
+      window.addEventListener('keydown', e=>{
+        if(lightbox.classList.contains('open')){
+          if(e.key==='ArrowRight') showNext();
+          if(e.key==='ArrowLeft') showPrev();
+          if(e.key==='Escape') closeLightbox();
+        }
+      });
+
+      applyFilter('all');
+      applyEffect('none');
+
+      window.addEventListener('resize', ()=>{
+       
+      });
+
+    })();
+  </script>
+</body>
+</html>
